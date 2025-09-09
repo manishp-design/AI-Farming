@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krushi Mitra - AI Farmer Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #7cb342;
+            --accent: #ffa000;
+            --light: #f1f8e9;
+            --dark: #1b5e20;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            background-color: var(--primary);
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-4.0.3') center/cover no-repeat;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .feature-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .crop-advisor {
+            background-color: var(--light);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            border: none;
+        }
+        
+        .result-card {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        .footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+        
+        .language-option {
+            display: inline-block;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .language-option.active {
+            background-color: var(--accent);
+            color: black;
+        }
+        
+        .ai-chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .ai-chat-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ai-chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .ai-chat-input {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+        
+        .ai .message-content {
+            background-color: #e8f5e9;
+        }
+        
+        .user .message-content {
+            background-color: #bbdefb;
+        }
+        
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+        }
+        
+        .crop-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .problem-solver {
+            background-color: var(--light);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        
+        .marathi-text {
+            font-family: 'Nirmala UI', 'Segoe UI', sans-serif;
+        }
+        
+        @media (max-width: 768px) {
+            .ai-chat-container {
+                width: 300px;
+                height: 400px;
+                right: 10px;
+                bottom: 10px;
+            }
+            
+            .hero-section {
+                padding: 60px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <div class="language-option active" data-lang="en">English</div>
+        <div class="language-option" data-lang="mr">मराठी</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-seedling me-2"></i> <span class="lang" key="brand">Krushi Mitra AI</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" key="home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#advisor" key="cropAdvisor">Crop Advisor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#problem-solver" key="problemSolver">Problem Solver</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#market" key="market">Market Prices</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about" key="about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold" key="heroTitle">AI-Powered Farming Assistant</h1>
+            <p class="lead" key="heroSubtitle">Get personalized recommendations for crops, fertilizers, and farming practices tailored to your specific conditions.</p>
+            <a href="#advisor" class="btn btn-lg btn-warning mt-3" key="getRecommendations">Get Recommendations</a>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 key="featuresTitle">How Krushi Mitra AI Helps Farmers</h2>
+                <p class="lead" key="featuresSubtitle">Our intelligent system provides comprehensive support for all your farming needs</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h4 key="feature1Title">Crop Selection</h4>
+                            <p key="feature1Desc">Get AI-powered recommendations for the best crops to plant based on your soil type, climate, and region.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <h4 key="feature2Title">Fertilizer Advice</h4>
+                            <p key="feature2Desc">Receive precise fertilizer recommendations to maximize yield while minimizing costs and environmental impact.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-bug"></i>
+                            </div>
+                            <h4 key="feature3Title">Pest Management</h4>
+                            <p key="feature3Desc">Identify pests and diseases early and get organic and chemical treatment options tailored to your crops.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-cloud-sun"></i>
+                            </div>
+                            <h4 key="feature4Title">Weather Integration</h4>
+                            <p key="feature4Desc">Plan your farming activities with accurate weather forecasts and alerts for your specific location.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h4 key="feature5Title">Growing Calendar</h4>
+                            <p key="feature5Desc">Optimize your planting and harvesting schedule with personalized calendar recommendations.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4 key="feature6Title">AI Assistant</h4>
+                            <p key="feature6Desc">Get instant answers to all your farming questions with our 24/7 AI assistant.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Crop Advisor -->
+    <section id="advisor" class="py-5 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 key="advisorTitle">AI Crop & Fertilizer Advisor</h2>
+                    <p class="lead" key="advisorSubtitle">Answer a few questions about your farm to get personalized recommendations.</p>
+                    <div class="crop-advisor mt-4">
+                        <form id="advisor-form">
+                            <div class="mb-3">
+                                <label class="form-label" key="locationLabel">Where is your farm located?</label>
+                                <input type="text" class="form-control" placeholder="Country, Region" key="locationPlaceholder">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" key="soilLabel">What type of soil do you have?</label>
+                                <select class="form-select" id="soilType">
+                                    <option selected value="" key="selectSoil">Select soil type</option>
+                                    <option value="clay" key="soilClay">Clay</option>
+                                    <option value="sandy" key="soilSandy">Sandy</option>
+                                    <option value="loamy" key="soilLoamy">Loamy</option>
+                                    <option value="peaty" key="soilPeaty">Peaty</option>
+                                    <option value="chalky" key="soilChalky">Chalky</option>
+                                    <option value="silty" key="soilSilty">Silty</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" key="climateLabel">What is your climate type?</label>
+                                <select class="form-select" id="climate">
+                                    <option selected value="" key="selectClimate">Select climate</option>
+                                    <option value="tropical" key="climateTropical">Tropical</option>
+                                    <option value="dry" key="climateDry">Dry</option>
+                                    <option value="temperate" key="climateTemperate">Temperate</option>
+                                    <option value="continental" key="climateContinental">Continental</option>
+                                    <option value="polar" key="climatePolar">Polar</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" key="seasonLabel">What season are you planning for?</label>
+                                <select class="form-select" id="season">
+                                    <option selected value="" key="selectSeason">Select season</option>
+                                    <option value="spring" key="seasonSpring">Spring</option>
+                                    <option value="summer" key="seasonSummer">Summer</option>
+                                    <option value="fall" key="seasonFall">Fall/Autumn</option>
+                                    <option value="winter" key="seasonWinter">Winter</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" key="waterLabel">What is your water availability?</label>
+                                <select class="form-select" id="water">
+                                    <option selected value="" key="selectWater">Select water availability</option>
+                                    <option value="high" key="waterHigh">High (good irrigation)</option>
+                                    <option value="medium" key="waterMedium">Medium (limited irrigation)</option>
+                                    <option value="low" key="waterLow">Low (rain-fed only)</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-primary w-100" onclick="generateRecommendation()" key="getRecommendationsBtn">Get Recommendations</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="result-card" id="recommendation-result">
+                        <h3 key="recommendedCrops">Recommended Crops</h3>
+                        <div class="alert alert-success" key="recommendationText">
+                            Based on your inputs, here are the best crops for your farm:
+                        </div>
+                        <ul class="list-group mb-4" id="crop-list">
+                            <!-- Will be populated by JavaScript -->
+                        </ul>
+                        
+                        <h4 key="fertilizerRecommendations">Fertilizer Recommendations</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th key="tableCrop">Crop</th>
+                                        <th key="tableFertilizer">Fertilizer Type</th>
+                                        <th key="tableApplication">Application Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fertilizer-table">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" onclick="printRecommendations()">
+                                <i class="fas fa-print me-2"></i><span key="printRecommendations">Print Recommendations</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Solver -->
+    <section id="problem-solver" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4" key="problemSolverTitle">AI Problem Solver</h2>
+            <p class="text-center lead mb-5" key="problemSolverSubtitle">Describe your farming problem and get AI-powered solutions</p>
+            
+            <div class="problem-solver">
+                <div class="mb-3">
+                    <label class="form-label" key="problemLabel">Describe your farming problem:</label>
+                    <textarea class="form-control" rows="4" placeholder="E.g., My wheat plants have yellow spots on leaves and are not growing properly..." key="problemPlaceholder"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" key="uploadLabel">Upload image of affected crop (optional):</label>
+                    <input type="file" class="form-control" accept="image/*">
+                </div>
+                <button class="btn btn-primary w-100" onclick="analyzeProblem()" key="analyzeProblemBtn">
+                    <i class="fas fa-robot me-2"></i> Analyze Problem
+                </button>
+                
+                <div class="result-card mt-4" id="problem-solution">
+                    <h4 key="solutionTitle">AI Analysis & Solution</h4>
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i> <span key="analysisText">Based on your description, this appears to be a nutrient deficiency issue.</span>
+                    </div>
+                    
+                    <h5 key="recommendedSolution">Recommended Solution:</h5>
+                    <ul id="solution-list">
+                        <!-- Will be populated by JavaScript -->
+                    </ul>
+                    
+                    <h5 key="preventiveMeasures">Preventive Measures:</h5>
+                    <ul id="prevention-list">
+                        <!-- Will be populated by JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Prices -->
+    <section id="market" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4" key="marketTitle">Current Market Prices</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th key="marketCrop">Crop</th>
+                            <th key="marketPrice">Price (per kg)</th>
+                            <th key="marketTrend">Trend</th>
+                            <th key="marketUpdated">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td key="cropWheat">Wheat</td>
+                            <td>$0.25</td>
+                            <td><i class="fas fa-arrow-up text-success"></i> <span key="trendUp">+2.3%</span></td>
+                            <td key="today">Today</td>
+                        </tr>
+                        <tr>
+                            <td key="cropCorn">Corn</td>
+                            <td>$0.19</td>
+                            <td><i class="fas fa-arrow-down text-danger"></i> <span key="trendDown">-1.5%</span></td>
+                            <td key="today2">Today</td>
+                        </tr>
+                        <tr>
+                            <td key="cropSoybeans">Soybeans</td>
+                            <td>$0.42</td>
+                            <td><i class="fas fa-arrow-up text-success"></i> <span key="trendUp2">+3.7%</span></td>
+                            <td key="today3">Today</td>
+                        </tr>
+                        <tr>
+                            <td key="cropRice">Rice</td>
+                            <td>$0.38</td>
+                            <td><i class="fas fa-minus text-secondary"></i> <span key="noChange">No change</span></td>
+                            <td key="yesterday">Yesterday</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 key="footerBrand">Krushi Mitra AI</h5>
+                    <p key="footerMission">Helping farmers grow more with less using artificial intelligence and expert knowledge.</p>
+                </div>
+                <div class="col-md-2">
+                    <h5 key="footerLinks">Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white" key="homeLink">Home</a></li>
+                        <li><a href="#advisor" class="text-white" key="cropAdvisorLink">Crop Advisor</a></li>
+                        <li><a href="#problem-solver" class="text-white" key="problemSolverLink">Problem Solver</a></li>
+                        <li><a href="#market" class="text-white" key="marketLink">Market Prices</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 key="footerContact">Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> help@krushimitra.ai</li>
+                        <li><i class="fas fa-phone me-2"></i> +1 (800) 123-4567</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> <span key="worldwide">Worldwide</span></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 key="footerSubscribe">Subscribe</h5>
+                    <p key="footerSubscribeText">Get farming tips and updates</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Your email" key="emailPlaceholder">
+                        <button class="btn btn-primary" key="subscribeBtn">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 bg-light">
+            <div class="text-center">
+                <p>© 2023 Krushi Mitra AI. <span key="rightsReserved">All rights reserved.</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AI Chat Button -->
+    <div class="ai-chat-btn" onclick="toggleChat()">
+        <i class="fas fa-robot fa-2x"></i>
+    </div>
+
+    <!-- AI Chat Container -->
+    <div class="ai-chat-container" id="aiChat">
+        <div class="ai-chat-header">
+            <h5 class="mb-0" key="chatTitle">Krushi Mitra AI Assistant</h5>
+            <button class="btn btn-sm btn-light" onclick="toggleChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ai-chat-messages" id="chatMessages">
+            <div class="chat-message ai">
+                <div class="message-content">
+                    <p key="welcomeMessage">Hello! I'm Krushi Mitra AI. How can I help with your farming today? You can ask me about crops, fertilizers, pests, or any farming problem.</p>
+                </div>
+            </div>
+        </div>
+        <div class="ai-chat-input">
+            <input type="text" class="form-control me-2" placeholder="Type your question here..." id="chatInput" key="chatPlaceholder">
+            <button class="btn btn-primary" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Language translations
+        const translations = {
+            en: {
+                // Navigation
+                "brand": "Krushi Mitra AI",
+                "home": "Home",
+                "cropAdvisor": "Crop Advisor",
+                "problemSolver": "Problem Solver",
+                "market": "Market Prices",
+                "about": "About",
+                
+                // Hero section
+                "heroTitle": "AI-Powered Farming Assistant",
+                "heroSubtitle": "Get personalized recommendations for crops, fertilizers, and farming practices tailored to your specific conditions.",
+                "getRecommendations": "Get Recommendations",
+                
+                // Features
+                "featuresTitle": "How Krushi Mitra AI Helps Farmers",
+                "featuresSubtitle": "Our intelligent system provides comprehensive support for all your farming needs",
+                "feature1Title": "Crop Selection",
+                "feature1Desc": "Get AI-powered recommendations for the best crops to plant based on your soil type, climate, and region.",
+                "feature2Title": "Fertilizer Advice",
+                "feature2Desc": "Receive precise fertilizer recommendations to maximize yield while minimizing costs and environmental impact.",
+                "feature3Title": "Pest Management",
+                "feature3Desc": "Identify pests and diseases early and get organic and chemical treatment options tailored to your crops.",
+                "feature4Title": "Weather Integration",
+                "feature4Desc": "Plan your farming activities with accurate weather forecasts and alerts for your specific location.",
+                "feature5Title": "Growing Calendar",
+                "feature5Desc": "Optimize your planting and harvesting schedule with personalized calendar recommendations.",
+                "feature6Title": "AI Assistant",
+                "feature6Desc": "Get instant answers to all your farming questions with our 24/7 AI assistant.",
+                
+                // Advisor form
+                "advisorTitle": "AI Crop & Fertilizer Advisor",
+                "advisorSubtitle": "Answer a few questions about your farm to get personalized recommendations.",
+                "locationLabel": "Where is your farm located?",
+                "locationPlaceholder": "Country, Region",
+                "soilLabel": "What type of soil do you have?",
+                "selectSoil": "Select soil type",
+                "soilClay": "Clay",
+                "soilSandy": "Sandy",
+                "soilLoamy": "Loamy",
+                "soilPeaty": "Peaty",
+                "soilChalky": "Chalky",
+                "soilSilty": "Silty",
+                "climateLabel": "What is your climate type?",
+                "selectClimate": "Select climate",
+                "climateTropical": "Tropical",
+                "climateDry": "Dry",
+                "climateTemperate": "Temperate",
+                "climateContinental": "Continental",
+                "climatePolar": "Polar",
+                "seasonLabel": "What season are you planning for?",
+                "selectSeason": "Select season",
+                "seasonSpring": "Spring",
+                "seasonSummer": "Summer",
+                "seasonFall": "Fall/Autumn",
+                "seasonWinter": "Winter",
+                "waterLabel": "What is your water availability?",
+                "selectWater": "Select water availability",
+                "waterHigh": "High (good irrigation)",
+                "waterMedium": "Medium (limited irrigation)",
+                "waterLow": "Low (rain-fed only)",
+                "getRecommendationsBtn": "Get Recommendations",
+                
+                // Results
+                "recommendedCrops": "Recommended Crops",
+                "recommendationText": "Based on your inputs, here are the best crops for your farm:",
+                "cropWheat": "Wheat",
+                "cropCorn": "Corn",
+                "cropSoybeans": "Soybeans",
+                "cropRice": "Rice",
+                "highYield": "High Yield",
+                "recommended": "Recommended",
+                "moderateYield": "Moderate Yield",
+                "fertilizerRecommendations": "Fertilizer Recommendations",
+                "tableCrop": "Crop",
+                "tableFertilizer": "Fertilizer Type",
+                "tableApplication": "Application Time",
+                "applicationBefore": "Before planting",
+                "applicationDuring": "During sowing",
+                "applicationAfter": "2 weeks after planting",
+                "printRecommendations": "Print Recommendations",
+                
+                // Problem Solver
+                "problemSolverTitle": "AI Problem Solver",
+                "problemSolverSubtitle": "Describe your farming problem and get AI-powered solutions",
+                "problemLabel": "Describe your farming problem:",
+                "problemPlaceholder": "E.g., My wheat plants have yellow spots on leaves and are not growing properly...",
+                "uploadLabel": "Upload image of affected crop (optional):",
+                "analyzeProblemBtn": "Analyze Problem",
+                "solutionTitle": "AI Analysis & Solution",
+                "analysisText": "Based on your description, this appears to be a nutrient deficiency issue.",
+                "recommendedSolution": "Recommended Solution:",
+                "preventiveMeasures": "Preventive Measures:",
+                
+                // Market prices
+                "marketTitle": "Current Market Prices",
+                "marketCrop": "Crop",
+                "marketPrice": "Price (per kg)",
+                "marketTrend": "Trend",
+                "marketUpdated": "Last Updated",
+                "trendUp": "+2.3%",
+                "trendDown": "-1.5%",
+                "trendUp2": "+3.7%",
+                "noChange": "No change",
+                "today": "Today",
+                "today2": "Today",
+                "today3": "Today",
+                "yesterday": "Yesterday",
+                
+                // Footer
+                "footerBrand": "Krushi Mitra AI",
+                "footerMission": "Helping farmers grow more with less using artificial intelligence and expert knowledge.",
+                "footerLinks": "Links",
+                "homeLink": "Home",
+                "cropAdvisorLink": "Crop Advisor",
+                "problemSolverLink": "Problem Solver",
+                "marketLink": "Market Prices",
+                "footerContact": "Contact Us",
+                "worldwide": "Worldwide",
+                "footerSubscribe": "Subscribe",
+                "footerSubscribeText": "Get farming tips and updates",
+                "emailPlaceholder": "Your email",
+                "subscribeBtn": "Subscribe",
+                "rightsReserved": "All rights reserved.",
+                
+                // Chat
+                "chatTitle": "Krushi Mitra AI Assistant",
+                "welcomeMessage": "Hello! I'm Krushi Mitra AI. How can I help with your farming today? You can ask me about crops, fertilizers, pests, or any farming problem.",
+                "chatPlaceholder": "Type your question here..."
+            },
+            mr: {
+                // Navigation
+                "brand": "कृषी मित्र AI",
+                "home": "मुख्यपृष्ठ",
+                "cropAdvisor": "पिक सल्लागार",
+                "problemSolver": "समस्या निराकरण",
+                "market": "बाजारभाव",
+                "about": "विषयी",
+                
+                // Hero section
+                "heroTitle": "AI-चालित शेती सहाय्यक",
+                "heroSubtitle": "तुमच्या विशिष्ट परिस्थितीनुसार पिके, खते आणि शेती पद्धतींसाठी वैयक्तिकृत शिफारसी मिळवा.",
+                "getRecommendations": "शिफारसी मिळवा",
+                
+                // Features
+                "featuresTitle": "कृषी मित्र AI शेतकऱ्यांना कशी मदत करते",
+                "featuresSubtitle": "आमची बुद्धिमान प्रणाली तुमच्या सर्व शेती गरजांसाठी व्यापक समर्थन प्रदान करते",
+                "feature1Title": "पिक निवड",
+                "feature1Desc": "तुमच्या मातीचा प्रकार, हवामान आणि प्रदेशावर आधारित लावण्यासाठी सर्वोत्तम पिकांसाठी AI-चालित शिफारसी मिळवा.",
+                "feature2Title": "खत सल्ला",
+                "feature2Desc": "उत्पन्न वाढवण्यासाठी अचूक खत शिफारसी मिळवा आणि खर्च आणि पर्यावरणीय प्रभाव कमी करा.",
+                "feature3Title": "कीटक नियंत्रण",
+                "feature3Desc": "कीटक आणि रोग लवकर ओळखा आणि तुमच्या पिकांसाठी सेंद्रिय आणि रासायनिक उपचार पर्याय मिळवा.",
+                "feature4Title": "हवामान एकत्रीकरण",
+                "feature4Desc": "तुमच्या विशिष्ट स्थानासाठी अचूक हवामान अंदाज आणि सूचनांसह तुमच्या शेतीच्या क्रियाकलापांची योजना करा.",
+                "feature5Title": "वाढीचे कॅलेंडर",
+                "feature5Desc": "वैयक्तिकृत कॅलेंडर शिफारसींसह तुमचे लागवड आणि कापणी वेळापत्रक optimize करा.",
+                "feature6Title": "AI सहाय्यक",
+                "feature6Desc": "आमच्या 24/7 AI सहाय्यकासह तुमच्या सर्व शेती प्रश्नांची तात्काळ उत्तरे मिळवा.",
+                
+                // Advisor form
+                "advisorTitle": "AI पिक आणि खत सल्लागार",
+                "advisorSubtitle": "वैयक्तिकृत शिफारसी मिळवण्यासाठी तुमच्या शेताविषयी काही प्रश्नांची उत्तरे द्या.",
+                "locationLabel": "तुमचे शेत कोठे आहे?",
+                "locationPlaceholder": "देश, प्रदेश",
+                "soilLabel": "तुमच्याकडे कोणत्या प्रकारची माती आहे?",
+                "selectSoil": "मातीचा प्रकार निवडा",
+                "soilClay": "चिकणमाती",
+                "soilSandy": "वालुकामय",
+                "soilLoamy": "चिकणमातीयुक्त",
+                "soilPeaty": "पीट",
+                "soilChalky": "खडू",
+                "soilSilty": "गाळ",
+                "climateLabel": "तुमचे हवामान प्रकार काय आहे?",
+                "selectClimate": "हवामान निवडा",
+                "climateTropical": "उष्णकटिबंधीय",
+                "climateDry": "कोरडे",
+                "climateTemperate": "समशीतोष्ण",
+                "climateContinental": "खंडीय",
+                "climatePolar": "ध्रुवीय",
+                "seasonLabel": "तुम्ही कोणत्या हंगामासाठी नियोजन करत आहात?",
+                "selectSeason": "हंगाम निवडा",
+                "seasonSpring": "वसंत ऋतू",
+                "seasonSummer": "उन्हाळा",
+                "seasonFall": "शरद ऋतू",
+                "seasonWinter": "हिवाळा",
+                "waterLabel": "तुमची पाणी उपलब्धता काय आहे?",
+                "selectWater": "पाणी उपलब्धता निवडा",
+                "waterHigh": "उच्च (चांगली सिंचन)",
+                "waterMedium": "मध्यम (मर्यादित सिंचन)",
+                "waterLow": "कमी (फक्त पावसावर अवलंबून)",
+                "getRecommendationsBtn": "शिफारसी मिळवा",
+                
+                // Results
+                "recommendedCrops": "शिफारस केलेली पिके",
+                "recommendationText": "तुमच्या इनपुट्सवर आधारित, तुमच्या शेतासाठी या सर्वोत्तम पिकांचा समावेश आहे:",
+                "cropWheat": "गहू",
+                "cropCorn": "मका",
+                "cropSoybeans": "सोयाबीन",
+                "cropRice": "तांदूळ",
+                "highYield": "उच्च उत्पादन",
+                "recommended": "शिफारस केले",
+                "moderateYield": "मध्यम उत्पादन",
+                "fertilizerRecommendations": "खत शिफारसी",
+                "tableCrop": "पीक",
+                "tableFertilizer": "खत प्रकार",
+                "tableApplication": "अर्ज वेळ",
+                "applicationBefore": "लागवडपूर्वी",
+                "applicationDuring": "पेरणी दरम्यान",
+                "applicationAfter": "लागवडीनंतर 2 आठवडे",
+                "printRecommendations": "शिफारसी छापा",
+                
+                // Problem Solver
+                "problemSolverTitle": "AI समस्या निराकरण",
+                "problemSolverSubtitle": "तुमची शेती समस्या वर्णन करा आणि AI-चालित उपाय मिळवा",
+                "problemLabel": "तुमची शेती समस्या वर्णन करा:",
+                "problemPlaceholder": "उदा., माझ्या गव्हाच्या झाडावर पानांवर पिवळे डाग आहेत आणि योग्यरित्या वाढत नाहीत...",
+                "uploadLabel": "प्रभावित पिकाची प्रतिमा अपलोड करा (पर्यायी):",
+                "analyzeProblemBtn": "समस्येचे विश्लेषण करा",
+                "solutionTitle": "AI विश्लेषण आणि उपाय",
+                "analysisText": "तुमच्या वर्णनावर आधारित, ही एक पोषक तुटीची समस्या आहे असे दिसते.",
+                "recommendedSolution": "शिफारस केलेला उपाय:",
+                "preventiveMeasures": "प्रतिबंधात्मक उपाय:",
+                
+                // Market prices
+                "marketTitle": "सध्याचे बाजारभाव",
+                "marketCrop": "पीक",
+                "marketPrice": "किंमत (प्रति किलो)",
+                "marketTrend": "कल",
+                "marketUpdated": "शेवटी अद्यतनित",
+                "trendUp": "+२.३%",
+                "trendDown": "-१.५%",
+                "trendUp2": "+३.७%",
+                "noChange": "बदल नाही",
+                "today": "आज",
+                "today2": "आज",
+                "today3": "आज",
+                "yesterday": "काल",
+                
+                // Footer
+                "footerBrand": "कृषी मित्र AI",
+                "footerMission": "कृत्रिम बुद्धिमत्ता आणि तज्ञ ज्ञान वापरून शेतकऱ्यांना कमीत कमी वाढवण्यास मदत करणे.",
+                "footerLinks": "दुवे",
+                "homeLink": "मुख्यपृष्ठ",
+                "cropAdvisorLink": "पिक सल्लागार",
+                "problemSolverLink": "समस्या निराकरण",
+                "marketLink": "बाजारभाव",
+                "footerContact": "आमच्याशी संपर्क साधा",
+                "worldwide": "जागतिक स्तरावर",
+                "footerSubscribe": "सदस्यता घ्या",
+                "footerSubscribeText": "शेती टिप्स आणि अद्यतने मिळवा",
+                "emailPlaceholder": "तुमचा ईमेल",
+                "subscribeBtn": "सदस्यता घ्या",
+                "rightsReserved": "सर्व हक्क राखीव.",
+                
+                // Chat
+                "chatTitle": "कृषी मित्र AI सहाय्यक",
+                "welcomeMessage": "नमस्कार! मी कृषी मित्र AI आहे. आज मी तुम्हाला तुमच्या शेतीबाबत कशी मदत करू शकते? तुम्ही मला पिके, खते, कीटक किंवा कोणतीही शेती समस्या विचारू शकता.",
+                "chatPlaceholder": "तुमचा प्रश्न येथे टाइप करा..."
+            }
+        };
+
+        // Set initial language
+        let currentLang = 'en';
+
+        // Function to change language
+        function changeLanguage(lang) {
+            currentLang = lang;
+            
+            // Update all elements with key attribute
+            document.querySelectorAll('[key]').forEach(element => {
+                const key = element.getAttribute('key');
+                if (translations[lang][key]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        element.placeholder = translations[lang][key];
+                    } else {
+                        element.innerHTML = translations[lang][key];
+                    }
+                }
+            });
+            
+            // Update active language button
+            document.querySelectorAll('.language-option').forEach(option => {
+                if (option.getAttribute('data-lang') === lang) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+            
+            // Add Marathi font class if Marathi is selected
+            if (lang === 'mr') {
+                document.querySelectorAll('[key]').forEach(element => {
+                    element.classList.add('marathi-text');
+                });
+            } else {
+                document.querySelectorAll('[key]').forEach(element => {
+                    element.classList.remove('marathi-text');
+                });
+            }
+        }
+
+        // Initialize language buttons
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                changeLanguage(lang);
+            });
+        });
+
+        // Sample crop database
+        const cropDatabase = {
+            wheat: {
+                name: { en: "Wheat", mr: "गहू" },
+                soil: ["loamy", "silty", "clay"],
+                climate: ["temperate", "continental"],
+                water: "medium",
+                fertilizer: { en: "NPK 20-20-0", mr: "NPK 20-20-0" },
+                application: { en: "Before planting", mr: "लागवडपूर्वी" }
+            },
+            corn: {
+                name: { en: "Corn", mr: "मका" },
+                soil: ["loamy", "silty"],
+                climate: ["temperate", "tropical"],
+                water: "high",
+                fertilizer: { en: "Urea + DAP", mr: "युरिया + DAP" },
+                application: { en: "During sowing", mr: "पेरणी दरम्यान" }
+            },
+            soybeans: {
+                name: { en: "Soybeans", mr: "सोयाबीन" },
+                soil: ["loamy", "sandy"],
+                climate: ["temperate", "tropical"],
+                water: "medium",
+                fertilizer: { en: "Compost + Rock Phosphate", mr: "कंपोस्ट + रॉक फॉस्फेट" },
+                application: { en: "2 weeks after planting", mr: "लागवडीनंतर 2 आठवडे" }
+            },
+            rice: {
+                name: { en: "Rice", mr: "तांदूळ" },
+                soil: ["clay", "silty"],
+                climate: ["tropical", "temperate"],
+                water: "high",
+                fertilizer: { en: "Ammonium Sulfate", mr: "अमोनियम सल्फेट" },
+                application: { en: "During transplanting", mr: "रोपण दरम्यान" }
+            }
+        };
+
+        function generateRecommendation() {
+            // Get form values
+            const soilType = document.getElementById('soilType').value;
+            const climate = document.getElementById('climate').value;
+            const season = document.getElementById('season').value;
+            const water = document.getElementById('water').value;
+            
+            // In a real application, this would connect to an AI backend
+            // For demo purposes, we're using a simple matching algorithm
+            const suitableCrops = [];
+            
+            for (const crop in cropDatabase) {
+                const cropInfo = cropDatabase[crop];
+                if (cropInfo.soil.includes(soilType) && 
+                    cropInfo.climate.includes(climate) && 
+                    cropInfo.water === water) {
+                    suitableCrops.push(cropInfo);
+                }
+            }
+            
+            // Display results
+            const cropList = document.getElementById('crop-list');
+            const fertilizerTable = document.getElementById('fertilizer-table');
+            
+            cropList.innerHTML = '';
+            fertilizerTable.innerHTML = '';
+            
+            if (suitableCrops.length > 0) {
+                suitableCrops.forEach(crop => {
+                    // Add to crop list
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <span>${crop.name[currentLang]}</span>
+                        <span class="badge bg-primary rounded-pill">${currentLang === 'en' ? 'Recommended' : 'शिफारस केले'}</span>
+                    `;
+                    cropList.appendChild(li);
+                    
+                    // Add to fertilizer table
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${crop.name[currentLang]}</td>
+                        <td>${crop.fertilizer[currentLang]}</td>
+                        <td>${crop.application[currentLang]}</td>
+                    `;
+                    fertilizerTable.appendChild(row);
+                });
+            } else {
+                cropList.innerHTML = <li class="list-group-item">${currentLang === 'en' ? 'No specific recommendations found. Please try different parameters.' : 'विशिष्ट शिफारसी सापडल्या नाहीत. कृपया वेगवेगळे पॅरामीटर्स वापरून पहा.'}</li>;
+            }
+            
+            document.getElementById('recommendation-result').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('recommendation-result').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+        
+        function analyzeProblem() {
+            // Show problem solution
+            const solutionList = document.getElementById('solution-list');
+            const preventionList = document.getElementById('prevention-list');
+            
+            solutionList.innerHTML = '';
+            preventionList.innerHTML = '';
+            
+            // Add solution items
+            const solutions = currentLang === 'en' ? [
+                "Apply nitrogen-rich fertilizer (e.g., urea)",
+                "Ensure proper irrigation drainage",
+                "Test soil pH and adjust if necessary",
+                "Consider crop rotation for next season"
+            ] : [
+                "नायट्रोजनयुक्त खत लावा (उदा., युरिया)",
+                "योग्य सिंचन ड्रेनेज सुनिश्चित करा",
+                "मातीची pH चाचणी करा आणि आवश्यक असल्यास समायोजित करा",
+                "पुढील हंगामासाठी पिक फेरफाराचा विचार करा"
+            ];
+            
+            solutions.forEach(solution => {
+                const li = document.createElement('li');
+                li.textContent = solution;
+                solutionList.appendChild(li);
+            });
+            
+            // Add prevention items
+            const preventions = currentLang === 'en' ? [
+                "Regular soil testing every season",
+                "Use organic compost to improve soil health",
+                "Implement proper crop rotation practices"
+            ] : [
+                "प्रत्येक हंगामात नियमित माती चाचणी",
+                "मातीचे आरोग्य सुधारण्यासाठी सेंद्रिय कंपोस्ट वापरा",
+                "योग्य पिक फेरफार पद्धतींची अंमलबजावणी करा"
+            ];
+            
+            preventions.forEach(prevention => {
+                const li = document.createElement('li');
+                li.textContent = prevention;
+                preventionList.appendChild(li);
+            });
+            
+            document.getElementById('problem-solution').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('problem-solution').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+        
+        function printRecommendations() {
+            // This would open a print dialog with the recommendations
+            alert(currentLang === 'en' ? 
+                "Printing functionality would be implemented here. In a real application, this would generate a printable report." : 
+                "छपाई कार्यक्षमता येथे लागू केली जाईल. वास्तविक अनुप्रयोगामध्ये, हे एक प्रिंट करण्यायोग्य अहवाल तयार करेल.");
+        }
+        
+        // AI Chat functionality
+        function toggleChat() {
+            const chat = document.getElementById('aiChat');
+            if (chat.style.display === 'flex') {
+                chat.style.display = 'none';
+            } else {
+                chat.style.display = 'flex';
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            // Add user message
+            const chatMessages = document.getElementById('chatMessages');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'chat-message user';
+            userMessageDiv.innerHTML = <div class="message-content"><p>${message}</p></div>;
+            chatMessages.appendChild(userMessageDiv);
+            
+            // Clear input
+            input.value = '';
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate AI response (in real app, this would call an API)
+            setTimeout(() => {
+                const aiResponse = getAIResponse(message, currentLang);
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'chat-message ai';
+                aiMessageDiv.innerHTML = <div class="message-content"><p>${aiResponse}</p></div>;
+                chatMessages.appendChild(aiMessageDiv);
+                
+                // Scroll to bottom again
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+        }
+        
+        function getAIResponse(message, lang) {
+            // Simple response logic - in a real application, this would call an AI API
+            const lowerMsg = message.toLowerCase();
+            
+            if (lowerMsg.includes('wheat') || lowerMsg.includes('गहू')) {
+                return lang === 'en' ? 
+                    "For wheat cultivation, ensure well-drained loamy soil with a pH between 6.0-7.5. Optimal temperature is between 20-25°C. Use NPK fertilizer in ratio 60:40:20 kg/ha. Irrigate immediately after sowing, then at crown root initiation, and flowering stages." :
+                    "गहू लागवडीसाठी, 6.0-7.5 दरम्यान pH असलेली चांगली वाहून नेलेली चिकणमाती खात्री करा. 20-25°C दरम्यान इष्टतम तापमान. 60:40:20 kg/ha प्रमाणात NPK खत वापरा. पेरणी नंतर लगेच सिंचन करा, नंतर क्राउन रूट सुरू होणे आणि फुलांच्या टप्प्यावर.";
+            } else if (lowerMsg.includes('fertilizer') || lowerMsg.includes('खत')) {
+                return lang === 'en' ? 
+                    "The right fertilizer depends on your soil type and crop. Generally, organic compost improves soil health. For nitrogen-deficient soil, use urea. For phosphorus, use DAP or SSP. For potassium, use MOP. Always conduct a soil test first for precise recommendations." :
+                    "योग्य खत तुमच्या मातीच्या प्रकार आणि पिकावर अवलंबून असते. साधारणपणे, सेंद्रिय कंपोस्ट मातीचे आरोग्य सुधारते. नायट्रोजन-कमी मातीसाठी, युरिया वापरा. फॉस्फरससाठी, DAP किंवा SSP वापरा. पोटॅशियमसाठी, MOP वापरा. अचूक शिफारसींसाठी प्रथम माती चाचणी नेहमी करा.";
+            } else if (lowerMsg.includes('pest') || lowerMsg.includes('कीटक')) {
+                return lang === 'en' ? 
+                    "For pest management, I recommend integrated approaches: 1) Use neem oil as a natural pesticide, 2) Introduce beneficial insects like ladybugs, 3) Practice crop rotation, 4) Remove infected plants immediately. Could you specify which pest or crop you're concerned about?" :
+                    "कीटक व्यवस्थापनासाठी, मी एकात्मिक दृष्टिकोनांची शिफारस करतो: 1) नैसर्गिक कीटकनाशक म्हणून निंब तेल वापरा, 2) लेडीबग्स सारख्या फायदेशीर कीटकांची ओळख करून द्या, 3) पिक फेरफाराचा सराव करा, 4) संसर्ग झालेली रोपे ताबडतोब काढा. तुम्हाला कोणत्या कीटक किंवा पिकाची काळजी आहे ते निर्दिष्ट करू शकता का?";
+            } else if (lowerMsg.includes('water') || lowerMsg.includes('पाणी')) {
+                return lang === 'en' ? 
+                    "Proper irrigation is crucial. Most crops need about 1 inch of water per week. Water early in the morning to reduce evaporation. Drip irrigation systems can save up to 50% water compared to flood irrigation. Mulching also helps retain soil moisture." :
+                    "योग्य सिंचन महत्वाचे आहे. बहुतेक पिकांना दर आठवड्याला सुमारे 1 इंच पाणी आवश्यक असते. बाष्पीभवन कमी करण्यासाठी सकाळी लवकर पाणी द्या. ड्रिप सिंचन प्रणाली पूर सिंचनाच्या तुलनेत 50% पर्यंत पाणी वाचवू शकते. मल्चिंग देखील मातीतील ओलावा राखण्यास मदत करते.";
+            } else {
+                return lang === 'en' ? 
+                    "Thank you for your question. As an AI farming assistant, I can help with crop selection, fertilizer recommendations, pest management, irrigation advice, and general farming best practices. Could you please provide more details about your specific situation?" :
+                    "तुमच्या प्रश्नाबद्दल धन्यवाद. AI शेती सहाय्यक म्हणून, मी पिक निवड, खत शिफारसी, कीटक व्यवस्थापन, सिंचन सल्ला आणि सामान्य शेती सर्वोत्तम पद्धतींमध्ये मदत करू शकतो. कृपया तुमच्या विशिष्ट परिस्थितीविषयी अधिक तपशील देऊ शकता का?";
+            }
+        }
+        
+        // Allow sending message with Enter key
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Simple form validation
+        document.getElementById('advisor-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateRecommendation();
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krushi Mitra - AI Farmer Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #7cb342;
+            --accent: #ffa000;
+            --light: #f1f8e9;
+            --dark: #1b5e20;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            background-color: var(--primary);
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?ixlib=rb-4.0.3') center/cover no-repeat;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .feature-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .crop-advisor {
+            background-color: var(--light);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            border: none;
+        }
+        
+        .result-card {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        .footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+        
+        .language-option {
+            display: inline-block;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .language-option.active {
+            background-color: var(--accent);
+            color: black;
+        }
+        
+        .ai-chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .ai-chat-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ai-chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .ai-chat-input {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+        }
+        
+        .ai .message-content {
+            background-color: #e8f5e9;
+        }
+        
+        .user .message-content {
+            background-color: #bbdefb;
+        }
+        
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+        }
+        
+        .crop-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .problem-solver {
+            background-color: var(--light);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        
+        .marathi-text {
+            font-family: 'Nirmala UI', 'Segoe UI', sans-serif;
+        }
+        
+        @media (max-width: 768px) {
+            .ai-chat-container {
+                width: 300px;
+                height: 400px;
+                right: 10px;
+                bottom: 10px;
+            }
+            
+            .hero-section {
+                padding: 60px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <div class="language-option active" data-lang="en">English</div>
+        <div class="language-option" data-lang="mr">मराठी</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-seedling me-2"></i> <span class="lang" key="brand">Krushi Mitra AI</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" key="home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#advisor" key="cropAdvisor">Crop Advisor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#problem-solver" key="problemSolver">Problem Solver</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#market" key="market">Market Prices</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about" key="about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold" key="heroTitle">AI-Powered Farming Assistant</h1>
+            <p class="lead" key="heroSubtitle">Get personalized recommendations for crops, fertilizers, and farming practices tailored to your specific conditions.</p>
+            <a href="#advisor" class="btn btn-lg btn-warning mt-3" key="getRecommendations">Get Recommendations</a>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 key="featuresTitle">How Krushi Mitra AI Helps Farmers</h2>
+                <p class="lead" key="featuresSubtitle">Our intelligent system provides comprehensive support for all your farming needs</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h4 key="feature1Title">Crop Selection</h4>
+                            <p key="feature1Desc">Get AI-powered recommendations for the best crops to plant based on your soil type, climate, and region.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <h4 key="feature2Title">Fertilizer Advice</h4>
+                            <p key="feature2Desc">Receive precise fertilizer recommendations to maximize yield while minimizing costs and environmental impact.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-bug"></i>
+                            </div>
+                            <h4 key="feature3Title">Pest Management</h4>
+                            <p key="feature3Desc">Identify pests and diseases early and get organic and chemical treatment options tailored to your crops.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-1
